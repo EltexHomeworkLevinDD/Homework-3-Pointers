@@ -6,56 +6,54 @@
 */
 
 #include <stdio.h>
-#define STRING_LIM 20
-#define SUBSTRING_SIZE 5
+
+
+#define STR_SIZE 20
+#define SUBSTR_SIZE (int)sizeof(int)
 
 int main(){
     // Строка и подстрока (+1 для '\0')
-    char str[STRING_LIM + 1] = {' '};
-    char substr[SUBSTRING_SIZE + 1] = {' '};
-    printf("Enter a string (max size %d): .", STRING_LIM);
-    fgets(str, STRING_LIM + 1, stdin);
-    printf("\nEnter a substring equal to the size %d): .", SUBSTRING_SIZE);
-    fgets(substr, SUBSTRING_SIZE + 1, stdin);
+    char str[STR_SIZE + 1] = {' '};
+    char substr[SUBSTR_SIZE + 1] = {' '};
 
-    printf("String[0]    = %c\n", str[0]);
-    printf("Substring[0] = %c\n", substr[0]);
-    printf("String[4]    = %c\n", str[4]);
-    printf("Substring[4] = %c\n", substr[4]);
+    printf("Enter a string (max size %d): .", STR_SIZE);
+    fgets(str, STR_SIZE + 1, stdin);
+
+    printf("Enter a substring equal to the size %d: .", SUBSTR_SIZE);
+    fgets(substr, SUBSTR_SIZE  + 1, stdin);
+    printf("\n");
+
     // Значение подстроки
-    unsigned long long int substr_value = 0;
-    for (int i = 0; i < SUBSTRING_SIZE; i++){
+    unsigned int substr_value = 0;
+    for (int i = 0; i < SUBSTR_SIZE ; i++){
         substr_value = (substr_value << 8) | substr[i];
-        printf("%u ", &substr[i]);
+        //printf("%u ", (int)substr[i]);
     }
-    printf("Substr value: %llu\n", substr_value);
+    //printf("\nSubstr value: %u\n", substr_value);
     
-    // Значение строки
-    unsigned long long int value = 0;
-    long mask = 0;
-    //mask = ((~mask) << ((sizeof(unsigned long long int) - 8*(SUBSTRING_SIZE - 1))) >> ((sizeof(unsigned long long int) - 8*(SUBSTRING_SIZE - 1))));
-    for (int i = 0; i < SUBSTRING_SIZE; i++){
-        value = (value << 8) | str[i];
-    }
-
+    // Проверяем значение подстроки на равенство со значенем выборки из строки
+    unsigned int value = 0;
     char* substr_begin = NULL;
     int index = -1;
-    // Проверяем значение подстроки на равенство со значенем выборки из строки
-    for (int i = SUBSTRING_SIZE; i < STRING_LIM - SUBSTRING_SIZE; i++){
-        printf("---str value: %llu\n", value);
-        // Проверка
-        if (substr_value == value){
-            substr_begin = &str[i - 1];
-            index = i - 1;
-            break;
-        }
-        // Значение строки
 
-        //value = ((value << 8) | str[i]) & ();
-        // value = ((value << sizeof(unsigned long long int) - 8*(SUBSTRING_SIZE - 1)) // Удаляем послений байт
-        //         >> (sizeof(unsigned long long int) - 8*(SUBSTRING_SIZE) - 8*(SUBSTRING_SIZE - 1)) // Сдвигаем обратно
-        //         | str[i]);
-        value = ((value << 8) | str[i]) & (mask);
+    // Значение строки
+    for (int i = 0; i < SUBSTR_SIZE; i++)
+        value = (value << 8) | str[i];
+
+    // Если подстрока в начале
+    if (substr_value == value){ 
+        substr_begin = &str[0];
+        index = 0;
+    }else{  // Если подстрока не в начале
+        for (int i = SUBSTR_SIZE; i < STR_SIZE; i++){
+            value = (value << 8) | str[i];
+            // Проверка
+            if (substr_value == value){
+                substr_begin = &str[i - SUBSTR_SIZE + 1];
+                index = i - SUBSTR_SIZE + 1;
+                break;
+            }
+        }
     }
     
     if (substr_begin == NULL)
@@ -63,8 +61,6 @@ int main(){
     else
         printf("Substring found at index: %d, addr: %p, symbol: %c", index, substr_begin, *substr_begin);
 
-    //printf("Your string is: .%s", str);
-    //printf("Your substring is: .%s", substr);
     printf("\n\n");
     return 0;
 }
